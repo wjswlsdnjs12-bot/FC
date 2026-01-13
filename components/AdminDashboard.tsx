@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { Member, Position, AttendanceRecord } from '../types';
 import { POSITIONS } from '../constants';
-import { Star, UserCog, UserMinus, Calendar, Search, Filter } from 'lucide-react';
+import { Star, UserCog, UserMinus, Calendar, Search, Filter, PieChart } from 'lucide-react';
 
 interface Props {
   members: Member[];
@@ -26,6 +26,15 @@ const AdminDashboard: React.FC<Props> = ({ members, attendance, onUpdateSkill, o
     return members.filter(m => attendeeIds.has(m.id));
   }, [members, attendance, selectedDate]);
 
+  // Position distribution stats
+  const stats = useMemo(() => {
+    const counts: Record<string, number> = { GK: 0, DF: 0, MF: 0, FW: 0 };
+    attendeesOnDate.forEach(m => {
+      counts[m.preferredPosition]++;
+    });
+    return counts;
+  }, [attendeesOnDate]);
+
   // Apply search filter and stable sort
   const filteredAttendees = useMemo(() => {
     return attendeesOnDate
@@ -42,6 +51,7 @@ const AdminDashboard: React.FC<Props> = ({ members, attendance, onUpdateSkill, o
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Top Controls */}
       <div className="bg-white p-8 md:p-10 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 mb-10">
           <div>
@@ -78,6 +88,23 @@ const AdminDashboard: React.FC<Props> = ({ members, attendance, onUpdateSkill, o
           </div>
         </div>
 
+        {/* Attendance Summary Bar */}
+        {attendeesOnDate.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10 bg-slate-50 p-6 rounded-3xl border border-slate-100">
+            <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total</span>
+              <span className="text-2xl font-black text-slate-900">{attendeesOnDate.length}</span>
+            </div>
+            {POSITIONS.map(pos => (
+              <div key={pos} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{pos}</span>
+                <span className={`text-2xl font-black ${stats[pos] > 0 ? 'text-amber-600' : 'text-slate-300'}`}>{stats[pos]}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Member Grid */}
         {filteredAttendees.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredAttendees.map(member => (

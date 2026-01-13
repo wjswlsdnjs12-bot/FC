@@ -6,7 +6,7 @@ import AttendanceForm from './components/AttendanceForm';
 import AdminDashboard from './components/AdminDashboard';
 import TeamGenerator from './components/TeamGenerator';
 import StatsBoard from './components/StatsBoard';
-import { LayoutGrid, ClipboardCheck, Users, Trophy, Settings, ShieldCheck, Lock, Unlock } from 'lucide-react';
+import { LayoutGrid, ClipboardCheck, Users, Trophy, Settings, ShieldCheck, Lock, Unlock, LogOut } from 'lucide-react';
 
 type Tab = 'attendance' | 'admin' | 'teams' | 'stats';
 
@@ -58,6 +58,13 @@ export default function App() {
     }
   };
 
+  const handleLock = () => {
+    setIsAuthorized(false);
+    if (activeTab === 'teams' || activeTab === 'admin') {
+      setActiveTab('attendance');
+    }
+  };
+
   const handleRegisterAttendance = (name: string, ageGroup: AgeGroup, position: Position, date: string, pitch: string) => {
     let member = members.find(m => m.name === name);
     
@@ -98,7 +105,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen pb-24 lg:pb-0 lg:pl-64 flex flex-col bg-slate-50">
+    <div className="min-h-screen pb-24 lg:pb-0 lg:pl-64 flex flex-col bg-slate-50 transition-colors duration-500">
       <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-64 luxury-gradient text-white flex-col p-6 shadow-2xl z-20">
         <div className="flex flex-col gap-1 mb-10 px-2">
           <div className="flex items-center gap-2">
@@ -118,8 +125,19 @@ export default function App() {
           <NavItem active={activeTab === 'admin'} onClick={() => handleTabChange('admin')} icon={<Settings />} label="관리자 설정" protected={!isAuthorized} />
         </nav>
         
-        <div className="mt-auto pt-6 text-[10px] text-slate-500 font-bold uppercase tracking-widest px-2">
-          Established 2024<br/>Elite Performance
+        <div className="mt-auto flex flex-col gap-6">
+          {isAuthorized && (
+            <button 
+              onClick={handleLock}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all text-xs font-black uppercase tracking-widest"
+            >
+              <LogOut size={16} />
+              Session Logout
+            </button>
+          )}
+          <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest px-2">
+            Established 2024<br/>Elite Performance
+          </div>
         </div>
       </aside>
 
@@ -128,9 +146,14 @@ export default function App() {
           <Trophy className="w-5 h-5 text-amber-500" />
           <h1 className="font-black tracking-tight">FC상암 <span className="text-amber-500">DMC</span></h1>
         </div>
+        {isAuthorized && (
+          <button onClick={handleLock} className="text-red-400 p-2">
+            <LogOut size={18} />
+          </button>
+        )}
       </header>
 
-      <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full">
+      <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full overflow-x-hidden">
         <div className="mb-8">
           {activeTab === 'attendance' && (
             <AttendanceForm onRegister={handleRegisterAttendance} />
@@ -162,13 +185,13 @@ export default function App() {
       {/* Password Modal */}
       {showPassModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="bg-slate-900 border border-amber-500/20 w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden">
+          <div className="bg-slate-900 border border-amber-500/20 w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
             <div className="p-8 text-center">
-              <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-6 ring-4 ring-amber-500/5">
                 <Lock className="w-8 h-8 text-amber-500" />
               </div>
               <h3 className="text-2xl font-black text-white italic tracking-tighter mb-2 uppercase">Access Restricted</h3>
-              <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mb-8">매니저 비밀번호를 입력하세요</p>
+              <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mb-8">DMC 매니저 비밀번호를 입력하세요</p>
               
               <form onSubmit={handleAuth} className="space-y-4">
                 <input 
@@ -176,13 +199,13 @@ export default function App() {
                   autoFocus
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
-                  placeholder="Password"
-                  className="w-full bg-slate-800 border border-slate-700 text-white text-center text-2xl font-black tracking-[0.5em] p-4 rounded-2xl outline-none focus:ring-2 focus:ring-amber-500 transition-all placeholder:text-slate-600"
+                  placeholder="••••"
+                  className="w-full bg-slate-800 border border-slate-700 text-white text-center text-3xl font-black tracking-[0.5em] p-5 rounded-2xl outline-none focus:ring-2 focus:ring-amber-500 transition-all placeholder:text-slate-700 shadow-inner"
                 />
                 <div className="grid grid-cols-2 gap-3">
                   <button 
                     type="button"
-                    onClick={() => setShowPassModal(false)}
+                    onClick={() => {setShowPassModal(false); setPendingTab(null);}}
                     className="py-4 bg-slate-800 text-slate-400 font-black rounded-2xl hover:bg-slate-700 transition-colors uppercase text-xs"
                   >
                     Cancel
